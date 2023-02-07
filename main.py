@@ -4,15 +4,14 @@
 # The closure is the smallest set that contains all elements in 'A' and is closed under the dependencies in 'F'.
 
 def FermTransAttr(F, A):
-    A_plus = set(A)
     while True:
-        A_plus_tmp = set(A_plus)
+        A_tmp = set(A)
         for X, Y in F:
-            if X.issubset(A_plus):
-                A_plus |= Y
-        if A_plus == A_plus_tmp:
+            if X.issubset(A):
+                A |= Y
+        if A == A_tmp:
             break
-    return A_plus
+    return A
 
 # This function implements the process of "Covering minimal dependency set".
 # The input 'F' is a set of dependency pairs, where each pair is composed of two sets.
