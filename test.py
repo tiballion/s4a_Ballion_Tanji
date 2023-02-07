@@ -32,8 +32,17 @@ class TestFermTransAttr(unittest.TestCase):
 
 class TestCouvMinDF(unittest.TestCase):
        def test_CouvMinDF(self):
-            #TODO: Write tests for CouvMinDF
-            pass
+        # Todo
+        pass
+        
+
+class TestDecompoDFen3Fn(unittest.TestCase):
+       def test_DecompoDFen3Fn(self):
+         # Test Case 1
+            F = [({'a', 'b'}, {'d'}), ({'b', 'c'}, {'d'}), ({'c', 'd'}, {'a'})]
+            A = {'a', 'b', 'c', 'd'}
+            assert DecompoDFen3FN(F, A) == [({'d', 'c'}, ['a']), ({'b', 'c'}, ['d']), ({'a', 'b'}, ['d'])]
+            
 
 
 
