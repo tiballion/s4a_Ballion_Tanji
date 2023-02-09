@@ -1,105 +1,84 @@
+from typing import List, Set, Tuple
+
 # This function implements the process of "Ferm attic transformation". 
 # The input 'F' is a set of dependency pairs, where each pair is composed of two sets. 
 # The function finds the closure of a given set 'A' under the dependencies in 'F'.
 # The closure is the smallest set that contains all elements in 'A' and is closed under the dependencies in 'F'.
 
-def FermTransAttr(F, A):
+def ferm_trans_attr(F : dict, A : dict) -> dict:
+    A_plus = set(A)
     while True:
-        A_tmp = set(A)
-        for X, Y in F:
-            if X.issubset(A):
-                A |= Y
-        if A == A_tmp:
+        A_plus_tmp = set(A_plus)
+        for X, Y in F.items():
+            if set(X).issubset(A_plus):
+                A_plus |= set(Y)
+        if A_plus == A_plus_tmp:
             break
-    return A
+    return A_plus
+
 
 # This function implements the process of "Covering minimal dependency set".
-# The input 'F' is a set of dependency pairs, where each pair is composed of two sets.
-# The function returns a covering minimal dependency set of 'F'.
 
-def CouvMinDF(F):
-    C = []
-    for X, Y in F:
+def couv_min_df(F: dict) -> dict:
+    #   1. décomposition des membres droits des dépendances fonctionnelles
+    C = {}
+    for X, Y in F.items():
         for y in Y:
-            C.append((X, {y}))
-    C_temp = C.copy()
-    for f in list(C):
-        X, Y = f
-        C_temp.remove(f)
-        for y in list(Y):
-            if y in FermTransAttr(C_temp, X):
-                Y.remove(y)
-    for f in list(C):
-        X, Y = f
-        if len(Y) == 0:
-            C.remove(f)
-    return C
+            if X not in C:
+                C[X] = {y}
+    # 2. élimination des dépendances fonctionnelles qui ne modifent pas sa fermeture
+    to_remove = []
+    for f in C.items():
+        # C_tmp is a copy of C without f
+        C_tmp = C.copy()
+        del C_tmp[f[0]]
+        if ferm_trans_attr(C_tmp,X) == f :
+            to_remove.append(f[0])
+    for f in to_remove:
+        del C[f]
+    # 3. réduction des membres gauches des dépendances fonctionnelles
+    for X, Y in C.items():
+        if len(X) == 1:
+            # X' = X
+            X_prime = X
+            # Pour chaque X'' ∈ C tel que X' ⊆ X'' faire
+            for X_prime_prime, Y_prime_prime in C.items():
+                if set(X_prime[0]).issubset(set(Y_prime_prime[0])):
+                    # C ← C \ {(X'', Y'')}
+                    del C[X_prime_prime]
+                    # C ← C ∪ {(X' ∪ X'', Y' ∪ Y'')}
+                    C[X_prime.union(X_prime_prime)] = Y.union(Y_prime_prime)
+    return C    
+
 
 # This function implements the process of "Decomposition of a functional dependency set".
 # The input 'F' is a set of dependency pairs, where each pair is composed of two sets.
 # The function returns a set of pairs, where each pair is composed of a set and a list.
 
 def DecompoDFen3FN(F, A):
-    C = CouvMinDF(F)
-    for i, f1 in enumerate(C):
-        for j, f2 in enumerate(C):
-            if i == j:
-                continue
-            X1, Y1 = f1
-            X2, Y2 = f2
-            if X1 == X2 and Y1 != Y2:
-                C.remove(f1)
-                C.remove(f2)
-                C.append((X1, Y1.union(Y2)))
-                break
-    B = A.copy()
-    for f in F:
-        B = B.union(set(f[0]).union(set(f[1])))
-    for f in C:
-        B = B.difference(set(f[0]).union(set(f[1])))
+    # 1. Constitution d'une couverture minimale de F, et utilisation de la propriété d'union
+    C = couv_min_df(F)
+    for X_to_Y, X_to_Z in [(X_to_Y, X_to_Z) for X_to_Y in C for X_to_Z in C if X_to_Y[0] == X_to_Z[0] and X_to_Y[1] != X_to_Z[1]]:
+        C.remove(X_to_Y)
+        C.remove(X_to_Z)
+        C.append((X_to_Y[0], X_to_Y[1].union(X_to_Z[1])))
+
+    # 2. Traitement des attributs isolés
+    B = set(A)
+    for X, Y in F:
+        B.difference_update(X + Y)
+    for X, Y in C:
+        B.difference_update(X + Y)
+
     S = []
-    for Z in B:
-        S.append((Z, [Z]))
+    S.append((B, B, B))
+
+    # 3. Création des relations
     while C:
-        f = C.pop()
-        X, Y = f
-        S.append((X, list(Y)))
+        X_to_Y = C.pop()
+        S.append((X_to_Y[0], X_to_Y[0] + Y, X_to_Y[0]))
+
     return S
-
-
-    
-F = [
-    (set('c'), set('a')),
-    (set({'c', 'e'}), set({'b','d'})),
-    (set({'a', 'b','d'}), set('b')),
-    (set('d'), set('e')),
-    (set({'b', 'c'}), set('d')),
-]
-
-C = [
-    (set('c'), set('a')),
-    (set({'c', 'e'}), set({'d'})),
-    (set({'c','d'}), set('b')),
-    (set({'d'}), set('e')),
-    (set({'b', 'c'}), set('d')),
-]
-
-B = [
-    (set('a'), set({'b','f'})),
-    (set({'a', 'c', 'd'}), set({'b'})),
-    (set({'b','g'}), set({'h'})),
-]
-
-A = {
-    'a' , 'c' ,'c'
-}
-
-
-assert FermTransAttr(F, set()) == set()
-assert FermTransAttr(F, {'b', 'e'}) == {'b', 'e'}
-assert FermTransAttr(F, {'c'}) == {'a', 'c'}
-assert FermTransAttr(F, {'a', 'd'}) == {'a', 'd', 'e'}
-assert FermTransAttr(F, {'c', 'd'}) == {'a', 'b', 'c', 'd', 'e'}
 
 
 # transform_file is a function that transforms a text file into a set of pairs.
@@ -109,7 +88,7 @@ assert FermTransAttr(F, {'c', 'd'}) == {'a', 'b', 'c', 'd', 'e'}
 def transform_file(txt_file):
     with open(txt_file, 'r') as f:
         lines = f.readlines()
-    F = []
+    F = {}
     for line in lines:
         line = line.split('->')
         x_element = line[0].split(',')
@@ -118,27 +97,31 @@ def transform_file(txt_file):
             x_element[i] = x_element[i].strip()
         for i in range(len(y_element)):
             y_element[i] = y_element[i].strip()
-        F.append((set(x_element), set(y_element)))
+        F[tuple(x_element)] = tuple(y_element)
     return F
 
 # display is a function that displays the result of the function FermTransAttr and CouvMinDF
 # The input 'F' is a set of pairs, where each pair is composed of two sets.
 
-def display(F):
-    for f in F:
-        print(f[0], '->', f[1])
+def display(F: dict):
+    for X, Y in F.items():
+        print( X, '->', Y)
 
 # display_DecompDFen3FN is a function that displays the result of the function DecompoDFen3FN
 # The input 'F' is a set of pairs, where each pair is composed of a set and a list.
 
 def display_DecompoDFen3FN(F):
     for f in F:
-        print('(', end='')
-        for i in range(len(f[1])):
-            print(f[1][i], end='')
-            if i != len(f[1]) - 1:
-                print(',', end='')
-        print(') a pour attribut', f[0])
+        print('R (', end='')
+        for i in f[0]:
+            print(i, end='')
+        print(') de clé ', end='')
+        for i in f[0]:
+            print(i, end='')
+        print('\n')
 
 
 
+print(ferm_trans_attr(transform_file('HTS+_simplif.txt'), {'d'}))
+print("Couverture Minimal de F")   
+display(couv_min_df(transform_file('HTS+_simplif.txt')))
