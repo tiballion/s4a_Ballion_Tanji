@@ -41,11 +41,19 @@ def FermTransAttr(F: List[List[str]], A: List[str]) -> List[str]:
 
 
 def CouvMinDF(F: List[List[str]]) -> List[List[str]]:
+    """
+    Compute the minimal cover of a set of functional dependencies.
+    :param F: A list of functional dependencies
+    :return: A list of functional dependencies representing the minimal cover of a set of functional dependencies.
+    """
+
+    # Create C by making each element of Y its own sublist in C
     C = []
     for X, Y in F:
         for y in Y:
             C.append([X, [y]])
-
+    
+    # Remove sublists if all elements in the second element are in FermTransAttr
     i = 0
     while i < len(C):
         current_line = C[i]
@@ -54,7 +62,8 @@ def CouvMinDF(F: List[List[str]]) -> List[List[str]]:
             C.pop(i)
             i -= 1
         i += 1
-
+    
+    # Remove elements from first element of sublists if they are in FermTransAttr
     i = 0
     while i < len(C):
         lst_key = C[i][0]
@@ -71,24 +80,26 @@ def CouvMinDF(F: List[List[str]]) -> List[List[str]]:
 
 
 def DecompoDFen3FN(F: List[List[str]], A: List[str]) -> List[List[str]]:
+    """
+    Decompose a set of functional dependencies into a set of 3NF dependencies.
+    :param F: A list of functional dependencies
+    :param A: A list of attributes
+    :return: A list of functional dependencies representing the decomposition of a set of functional dependencies into a set of 3NF dependencies.
+    """
     C = CouvMinDF(F)
     i = 0
     while i < len(C):
         j = i + 1
         while j < len(C):
             if C[i][0] == C[j][0] and C[i][1] != C[j][1]:
-                #Ajouter X → YZ à C
                 C.append([C[i][0], C[i][1] + C[j][1]])
-                #Supprimer X → Y et X → Z de C
                 del C[j]
                 del C[i]
                 i -= 1
                 break
             j += 1
         i += 1
-    # // 2. traitement des attributs isolés
     B = A
-    # // ajout des attributs de F
     for X, Y in F:
         for x in X:
             if x not in B:
@@ -96,7 +107,6 @@ def DecompoDFen3FN(F: List[List[str]], A: List[str]) -> List[List[str]]:
         for y in Y:
             if y not in B:
                 B.append(y)
-    # // suppression des attributs de C
     for X, Y in C:
         for x in X:
             if x in B:
@@ -105,17 +115,18 @@ def DecompoDFen3FN(F: List[List[str]], A: List[str]) -> List[List[str]]:
             if y in B:
                 B.remove(y)
     S = []
-    #  // création d'autant de relations que d'attributs isolés
     for b in B:
         S.append([[b], [b]])
-
-    #   // ajout d'autant de relations que de dépendances fonctionnelles
     for X, Y in C:
         S.append([X, Y])
     return S
 
 
 def _display(F: List[List[str]]) -> None:
+    """
+    Display a list of functional dependencies.
+    :param F: A list of functional dependencies
+    """
     for X, Y in F:
         for x in X:
             print(x, end='')
@@ -126,6 +137,10 @@ def _display(F: List[List[str]]) -> None:
 
 
 def _display_decomposition(F: List[List[str]]) -> None:
+    """
+    Display a list of functional dependencies.
+    :param F: A list of functional dependencies
+    """
     for X, Y in F:
         for x in X:
             print(x, end='')
@@ -143,13 +158,18 @@ def _display_decomposition(F: List[List[str]]) -> None:
 
 
 def letter_to_file(letter: str) -> None:
-    # Create file
+    """
+    Create a file with random letters.
+    :param letter: A string of letters
+    """
+    
+    # Create the output file
     file = open("jeu_donnée.txt", "w")
     
-    # Transform letter in a list
+    # Transforms the string into a list of letters
     letter_list = list(letter.lower())
 
-    # Iterate through each letter in the list
+    # Picks a random letter and writes it in the file
     for l in letter_list:
         int1 = random.randint(1, len(letter_list))
         int2 = random.randint(1, len(letter_list))
