@@ -14,8 +14,6 @@ def convert_txt_to_list(file_name: str) -> List[List[str]]:
 
 
 def FermTransAttr(F: List[List[str]], A: List[str]) -> List[str]:
-    if F == [[]]:
-        return
     Aplus = list(A)
     Atmp = -1
     while Aplus != Atmp:
@@ -135,6 +133,35 @@ def _display_decomposition(F: List[List[str]]) -> None:
         print(")")
 
 
+
+def follow_letter_chain(file, letters):
+    # Create an empty output
+    output = ""
+     
+    # Read file line by line
+    with open(file) as f:
+        for line in f:
+        
+            # Get words from line
+            split_line = line.split("->")
+            
+            # Get source and target from line
+            source, target = split_line[0], split_line[1].strip()
+            
+            # Check if source of line is in letters
+            if source in letters:
+                
+                # Add associated target words to output
+                output += target + " "
+                
+                # Replace source with associated target words
+                letters = letters.replace(source, target)
+    
+    # Return output
+    return output
+
+
+follow_letter_chain("test.txt", "Zachary")
 
 
 print(convert_txt_to_list('HTS+_simplif.txt'))
