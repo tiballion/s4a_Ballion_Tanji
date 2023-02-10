@@ -1,50 +1,41 @@
 import unittest
 from main import *
 
+class Test(unittest.TestCase):
+
+    def test_CouvMinDF(self):
+        F = [['a', 'b'],['b', 'c'], ['d', 'e']]
+        self.assertEqual(CouvMinDF(F), [['a', ['b']], ['b', ['c']], ['d', ['e']]])
+
+        F2 = [['a', 'b'],['b', 'c'], ['d', 'e'], ['a', 'c']]
+        self.assertEqual(CouvMinDF(F2), [['a', ['b']], ['b', ['c']], ['d', ['e']]])
+
+        F3 = [['a', 'b'],['b', 'c'], ['d', 'e'], ['a', 'c'], ['a', 'd']]
+        self.assertEqual(CouvMinDF(F3), [['a', ['b']], ['b', ['c']], ['d', ['e']], ['a', ['d']]])
 
 
-class TestFermTransAttr(unittest.TestCase):
-    def test_ferm_trans_attr(self):
-        # Test 1: Basic functionality
-        F = [({'A'}, {'B'}), ({'B'}, {'C'}), ({'C'}, {'D'})]
-        A = {'A'}
-        expected_output = {'A', 'B', 'C', 'D'}
-        self.assertEqual(ferm_trans_attr(F, A), expected_output)
+    def test_DecompoDFen3FN(self):
+        F = [['a', 'b'],['b', 'c'], ['d', 'e']]
+        self.assertEqual(DecompoDFen3FN(F, ['a', 'b', 'c', 'd', 'e']), [['a', ['b']], ['b', ['c']], ['d', ['e']]])
 
-        # Test 2: Empty set
-        F = [({'A'}, {'B'}), ({'B'}, {'C'}), ({'C'}, {'D'})]
-        A = set()
-        expected_output = set()
-        self.assertEqual(ferm_trans_attr(F, A), expected_output)
+        F2 = [['a', 'b'],['b', 'c'], ['d', 'e'], ['a', 'c']]
+        self.assertEqual(DecompoDFen3FN(F2, ['a', 'b', 'c', 'd', 'e']), [['a', ['b']], ['b', ['c']], ['d', ['e']]])
 
-        # Test 3: No dependencies in F
-        F = []
-        A = {'A'}
-        expected_output = {'A'}
-        self.assertEqual(ferm_trans_attr(F, A), expected_output)
+        F3 = [['a', 'b'],['b', 'c'], ['d', 'e'], ['a', 'c'], ['a', 'd'], ['b', 'd']]
+        self.assertEqual(DecompoDFen3FN(F3, ['a', 'b', 'c', 'd', 'e']), [['a', ['b']], ['d', ['e']], ['b', ['c', 'd']]])
 
-        # Test 4: A is already a closure
-        F = [({'A'}, {'B'}), ({'B'}, {'C'}), ({'C'}, {'D'})]
-        A = {'A', 'B', 'C', 'D'}
-        expected_output = {'A', 'B', 'C', 'D'}
-        self.assertEqual(ferm_trans_attr(F, A), expected_output)
+        F4 = [['a', 'b'],['b', 'c'], ['d', 'e'], ['a', 'c'], ['a', 'd'], ['b', 'd'], ['a', 'e']]
+        self.assertEqual(DecompoDFen3FN(F4, ['a', 'b', 'c', 'd', 'e']), [['a', ['b']], ['d', ['e']], ['b', ['c', 'd']]])
 
+    def test_FermTransAttr(self):
+        F = [['a', 'b'],['b', 'c'], ['d', 'e']]
+        self.assertEqual(FermTransAttr(F, ['a', 'b', 'c', 'd', 'e']), ['a', 'b', 'c', 'd', 'e'])
 
-class TestCouvMinDF(unittest.TestCase):
-       def test_CouvMinDF(self):
-        # Todo
-        pass
-        
+        F2 = [['a', 'b'],['b', 'c'], ['d', 'e'], ['a', 'c']]
+        self.assertEqual(FermTransAttr(F2, ['a', 'b', 'c', 'd', 'e']), ['a', 'b', 'c', 'd', 'e'])
 
-class TestDecompoDFen3Fn(unittest.TestCase):
-       def test_DecompoDFen3Fn(self):
-         # Test Case 1
-            F = [({'a', 'b'}, {'d'}), ({'b', 'c'}, {'d'}), ({'c', 'd'}, {'a'})]
-            A = {'a', 'b', 'c', 'd'}
-            assert decompo_dfe_3fn(F, A) == [({'d', 'c'}, ['a']), ({'b', 'c'}, ['d']), ({'a', 'b'}, ['d'])]
-            
-
-
+        F3 = [['a', 'b'],['b', 'c'], ['d', 'e'], ['a', 'c'], ['a', 'd'], ['b', 'd']]
+        self.assertEqual(FermTransAttr(F3, []), [])
 
 if __name__ == '__main__':
     unittest.main()

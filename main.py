@@ -14,6 +14,8 @@ def convert_txt_to_list(file_name: str) -> List[List[str]]:
 
 
 def FermTransAttr(F: List[List[str]], A: List[str]) -> List[str]:
+    if F == [[]]:
+        return
     Aplus = list(A)
     Atmp = -1
     while Aplus != Atmp:
@@ -127,7 +129,7 @@ def _display_decomposition(F: List[List[str]]) -> None:
             if y not in X:
                 print(", ", end='')
                 print(y, end='')
-        print(") de clé ( ", end='')
+        print(") de clé (", end='')
         for x in X:
             print(x, end='')
         print(")")
