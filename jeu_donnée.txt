@@ -1,0 +1,7 @@
+a,c -> r,z
+h -> z
+a,z,r -> y,y,c
+a -> aa
+r -> z,aa
+h,aa -> c,yy
+r -> z
