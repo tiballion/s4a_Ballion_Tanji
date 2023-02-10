@@ -1,127 +1,140 @@
-from typing import List, Set, Tuple
+from typing import List
+import copy
 
-# This function implements the process of "Ferm attic transformation". 
-# The input 'F' is a set of dependency pairs, where each pair is composed of two sets. 
-# The function finds the closure of a given set 'A' under the dependencies in 'F'.
-# The closure is the smallest set that contains all elements in 'A' and is closed under the dependencies in 'F'.
-
-def ferm_trans_attr(F : dict, A : dict) -> dict:
-    A_plus = set(A)
-    while True:
-        A_plus_tmp = set(A_plus)
-        for X, Y in F.items():
-            if set(X).issubset(A_plus):
-                A_plus |= set(Y)
-        if A_plus == A_plus_tmp:
-            break
-    return A_plus
+def convert_txt_to_list(file_name: str) -> List[List[str]]:
+    list_of_lists = []
+    with open(file_name) as f:
+        line = f.readline()
+        while line != '':
+            right_side = line.split('->')[1].replace(' ', '').replace('\n', '').split(',')
+            left_side = line.split('->')[0].replace(' ', '').replace('\n', '')
+            list_of_lists.append([left_side, right_side])
+            line = f.readline()
+    return list_of_lists
 
 
-# This function implements the process of "Covering minimal dependency set".
-
-def couv_min_df(F: dict) -> dict:
-    #   1. décomposition des membres droits des dépendances fonctionnelles
-    C = {}
-    for X, Y in F.items():
-        for y in Y:
-            if X not in C:
-                C[X] = {y}
-    # 2. élimination des dépendances fonctionnelles qui ne modifent pas sa fermeture
-    to_remove = []
-    for f in C.items():
-        # C_tmp is a copy of C without f
-        C_tmp = C.copy()
-        del C_tmp[f[0]]
-        if ferm_trans_attr(C_tmp,X) == f :
-            to_remove.append(f[0])
-    for f in to_remove:
-        del C[f]
-    # 3. réduction des membres gauches des dépendances fonctionnelles
-    for X, Y in C.items():
-        if len(X) == 1:
-            # X' = X
-            X_prime = X
-            # Pour chaque X'' ∈ C tel que X' ⊆ X'' faire
-            for X_prime_prime, Y_prime_prime in C.items():
-                if set(X_prime[0]).issubset(set(Y_prime_prime[0])):
-                    # C ← C \ {(X'', Y'')}
-                    del C[X_prime_prime]
-                    # C ← C ∪ {(X' ∪ X'', Y' ∪ Y'')}
-                    C[X_prime.union(X_prime_prime)] = Y.union(Y_prime_prime)
-    return C    
+def FermTransAttr(F: List[List[str]], A: List[str]) -> List[str]:
+    Aplus = list(A)
+    Atmp = -1
+    while Aplus != Atmp:
+        Atmp = list(Aplus)
+        for X, Y in F:
+            if all(item in Aplus for item in X):
+                for y in Y:
+                    if y not in Aplus:
+                        Aplus.append(y)
+    return Aplus
 
 
-# This function implements the process of "Decomposition of a functional dependency set".
-# The input 'F' is a set of dependency pairs, where each pair is composed of two sets.
-# The function returns a set of pairs, where each pair is composed of a set and a list.
+def CouvMinDF(F: List[List[str]]) -> List[List[str]]:
+    C = []
 
-def DecompoDFen3FN(F, A):
-    # 1. Constitution d'une couverture minimale de F, et utilisation de la propriété d'union
-    C = couv_min_df(F)
-    for X_to_Y, X_to_Z in [(X_to_Y, X_to_Z) for X_to_Y in C for X_to_Z in C if X_to_Y[0] == X_to_Z[0] and X_to_Y[1] != X_to_Z[1]]:
-        C.remove(X_to_Y)
-        C.remove(X_to_Z)
-        C.append((X_to_Y[0], X_to_Y[1].union(X_to_Z[1])))
-
-    # 2. Traitement des attributs isolés
-    B = set(A)
     for X, Y in F:
-        B.difference_update(X + Y)
+        for y in Y:
+            C.append([X, [y]])
+
+    i = 0
+    while i < len(C):
+        current_line = C[i]
+        Ctmp = copy.deepcopy(C)
+        del Ctmp[i]
+        if all(item in FermTransAttr(Ctmp, current_line[0]) for item in current_line[1]):
+            del C[i]
+            i -= 1
+        i += 1
+
+    i = 0
+    while i < len(C):
+        lst_key = C[i][0]
+        for key in lst_key:
+            values_to_test = list(lst_key)
+            values_to_test.remove(key)
+
+            Ctmp = copy.deepcopy(C)
+            del Ctmp[i]
+
+            if key in FermTransAttr(Ctmp, values_to_test):
+                C[i][0] = values_to_test
+                i -= 1
+                break
+        i += 1
+    return C
+
+def DecompoDFen3FN(F: List[List[str]], A: List[str]) -> List[List[str]]:
+    C = CouvMinDF(F)
+    i = 0
+    while i < len(C):
+        j = i + 1
+        while j < len(C):
+            if C[i][0] == C[j][0] and C[i][1] != C[j][1]:
+                #Ajouter X → YZ à C
+                C.append([C[i][0], C[i][1] + C[j][1]])
+                #Supprimer X → Y et X → Z de C
+                del C[j]
+                del C[i]
+                i -= 1
+                break
+            j += 1
+        i += 1
+    # // 2. traitement des attributs isolés
+    B = A
+    # // ajout des attributs de F
+    for X, Y in F:
+        for x in X:
+            if x not in B:
+                B.append(x)
+        for y in Y:
+            if y not in B:
+                B.append(y)
+    # // suppression des attributs de C
     for X, Y in C:
-        B.difference_update(X + Y)
-
+        for x in X:
+            if x in B:
+                B.remove(x)
+        for y in Y:
+            if y in B:
+                B.remove(y)
     S = []
-    S.append((B, B, B))
+    #  // création d'autant de relations que d'attributs isolés
+    for b in B:
+        S.append([[b], [b]])
 
-    # 3. Création des relations
-    while C:
-        X_to_Y = C.pop()
-        S.append((X_to_Y[0], X_to_Y[0] + Y, X_to_Y[0]))
-
+    #   // ajout d'autant de relations que de dépendances fonctionnelles
+    for X, Y in C:
+        S.append([X, Y])
     return S
 
 
-# transform_file is a function that transforms a text file into a set of pairs.
-# The input 'txt_file' is a text file.
-# The function returns a set of pairs, where each pair is composed of two sets.
 
-def transform_file(txt_file):
-    with open(txt_file, 'r') as f:
-        lines = f.readlines()
-    F = {}
-    for line in lines:
-        line = line.split('->')
-        x_element = line[0].split(',')
-        y_element = line[1].split(',')
-        for i in range(len(x_element)):
-            x_element[i] = x_element[i].strip()
-        for i in range(len(y_element)):
-            y_element[i] = y_element[i].strip()
-        F[tuple(x_element)] = tuple(y_element)
-    return F
 
-# display is a function that displays the result of the function FermTransAttr and CouvMinDF
-# The input 'F' is a set of pairs, where each pair is composed of two sets.
+def _display(F: List[List[str]]) -> None:
+    for X, Y in F:
+        for x in X:
+            print(x, end='')
+        print(" -> ", end='')
+        for y in Y:
+            print(y, end='')
+        print()
 
-def display(F: dict):
-    for X, Y in F.items():
-        print( X, '->', Y)
-
-# display_DecompDFen3FN is a function that displays the result of the function DecompoDFen3FN
-# The input 'F' is a set of pairs, where each pair is composed of a set and a list.
-
-def display_DecompoDFen3FN(F):
-    for f in F:
-        print('R (', end='')
-        for i in f[0]:
-            print(i, end='')
-        print(') de clé ', end='')
-        for i in f[0]:
-            print(i, end='')
-        print('\n')
+def _display_decomposition(F: List[List[str]]) -> None:
+    for X, Y in F:
+        for x in X:
+            print(x, end='')
+        print("(", end='')
+        for x in X:
+            print(x, end='')
+        for y in Y:
+            if y not in X:
+                print(", ", end='')
+                print(y, end='')
+        print(") de clé ( ", end='')
+        for x in X:
+            print(x, end='')
+        print(")")
 
 
 
-print(ferm_trans_attr(transform_file('HTS+_simplif.txt'), {'d'}))
-print("Couverture Minimal de F")   
-display(couv_min_df(transform_file('HTS+_simplif.txt')))
+
+print(convert_txt_to_list('HTS+_simplif.txt'))
+print("====== CouvMinDF ======")
+_display_decomposition(DecompoDFen3FN(convert_txt_to_list('HTS+_simplif.txt'),['a','c','e']))

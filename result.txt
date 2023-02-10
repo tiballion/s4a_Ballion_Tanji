@@ -1,0 +1,15 @@
+a -> b
+b-> d
+c -> e
+d -> e
+d -> g
+b -> i
+e -> j
+e,f -> k,l,m,t
+f,g -> n
+h -> n,t
+i -> o
+c -> p
+k,m-> q
+n -> p,r,s
+p-> t
