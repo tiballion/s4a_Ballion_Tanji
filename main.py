@@ -1,6 +1,6 @@
 from typing import List
-import copy
 import random
+
 
 def convert_txt_to_list(file_name: str) -> List[List[str]]:
     list_of_lists = []
@@ -56,6 +56,7 @@ def CouvMinDF(F: List[List[str]]) -> List[List[str]]:
         i += 1
     return C
 
+
 def DecompoDFen3FN(F: List[List[str]], A: List[str]) -> List[List[str]]:
     C = CouvMinDF(F)
     i = 0
@@ -101,8 +102,6 @@ def DecompoDFen3FN(F: List[List[str]], A: List[str]) -> List[List[str]]:
     return S
 
 
-
-
 def _display(F: List[List[str]]) -> None:
     for X, Y in F:
         for x in X:
@@ -111,6 +110,7 @@ def _display(F: List[List[str]]) -> None:
         for y in Y:
             print(y, end='')
         print()
+
 
 def _display_decomposition(F: List[List[str]]) -> None:
     for X, Y in F:
@@ -127,6 +127,7 @@ def _display_decomposition(F: List[List[str]]) -> None:
         for x in X:
             print(x, end='')
         print(")")
+
 
 def letter_to_file(letter: str) -> None:
     # Create file
@@ -187,13 +188,13 @@ def letter_to_file(letter: str) -> None:
     file.close()
 
 
+def main():
+    letter_to_file("TanjiBallion")
+
+    print(convert_txt_to_list('HTS+_simplif.txt'))
+    print("====== CouvMinDF ======")
+    _display(CouvMinDF(convert_txt_to_list('HTS+_simplif.txt')))
 
 
-
-
-
-letter_to_file("Zachary")
-
-print(convert_txt_to_list('HTS+_simplif.txt'))
-print("====== CouvMinDF ======")
-_display(CouvMinDF(convert_txt_to_list('HTS+_simplif.txt')))
+if __name__ == '__main__':
+    main()
