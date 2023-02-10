@@ -223,10 +223,13 @@ def letter_to_file(letter: str) -> None:
 
 def main():
     letter_to_file("TanjiBallion")
-
     print(convert_txt_to_list('HTS+_simplif.txt'))
     print("====== CouvMinDF ======")
     _display(CouvMinDF(convert_txt_to_list('HTS+_simplif.txt')))
+    print("====== DecompoDFen3FN ======")
+    _display_decomposition(DecompoDFen3FN(convert_txt_to_list('HTS+_simplif.txt'), ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']))
+    print("====== FermTransAttr ======")
+    print(FermTransAttr(convert_txt_to_list('HTS+_simplif.txt'), ['a']))
 
 
 if __name__ == '__main__':
