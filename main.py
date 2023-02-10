@@ -3,28 +3,41 @@ import random
 
 
 def convert_txt_to_list(file_name: str) -> List[List[str]]:
+    """Convert a txt file to a list of lists
+    :param file_name: The name of the file to convert
+    :return: A list of lists of strings
+    """
     list_of_lists = []
+    # Open the file in read only mode
     with open(file_name) as f:
         line = f.readline()
         while line != '':
+            # Remove spaces and new lines
             right_side = line.split('->')[1].replace(' ', '').replace('\n', '').split(',')
             left_side = line.split('->')[0].replace(' ', '').replace('\n', '')
+            # Add the list to the list of lists
             list_of_lists.append([left_side, right_side])
             line = f.readline()
     return list_of_lists
 
 
 def FermTransAttr(F: List[List[str]], A: List[str]) -> List[str]:
-    Aplus = list(A)
-    Atmp = -1
-    while Aplus != Atmp:
-        Atmp = list(Aplus)
+    """
+    Compute the closure of a set of attributes under a set of functional dependencies.
+    :param F: A list of functional dependencies
+    :param A: A list of attributes
+    :return: A list of strings representing the closure of attributes under a set of functional dependencies.
+    """
+    a_plus = list(A)
+    a_tmp = -1
+    while a_plus != a_tmp:
+        a_tmp = list(a_plus)
         for X, Y in F:
-            if all(item in Aplus for item in X):
+            if all(item in a_plus for item in X):
                 for y in Y:
-                    if y not in Aplus:
-                        Aplus.append(y)
-    return Aplus
+                    if y not in a_plus:
+                        a_plus.append(y)
+    return a_plus
 
 
 def CouvMinDF(F: List[List[str]]) -> List[List[str]]:
@@ -36,8 +49,8 @@ def CouvMinDF(F: List[List[str]]) -> List[List[str]]:
     i = 0
     while i < len(C):
         current_line = C[i]
-        Ctmp = C[:i] + C[i+1:]
-        if all(item in FermTransAttr(Ctmp, current_line[0]) for item in current_line[1]):
+        c_tmp = C[:i] + C[i+1:]
+        if all(item in FermTransAttr(c_tmp, current_line[0]) for item in current_line[1]):
             C.pop(i)
             i -= 1
         i += 1
@@ -48,8 +61,8 @@ def CouvMinDF(F: List[List[str]]) -> List[List[str]]:
         for key in lst_key:
             values_to_test = list(lst_key)
             values_to_test.remove(key)
-            Ctmp = C[:i] + C[i+1:]
-            if key in FermTransAttr(Ctmp, values_to_test):
+            c_tmp = C[:i] + C[i+1:]
+            if key in FermTransAttr(c_tmp, values_to_test):
                 C[i][0] = [x for x in C[i][0] if x != key]
                 i -= 1
                 break
@@ -144,11 +157,11 @@ def letter_to_file(letter: str) -> None:
         rand_right_letters = []
             
         # Get two random numbers and use them to choose two random letters
-        for i in range(int1):
+        for _ in range(int1):
             rand_letter = random.choice(letter_list)
             rand_letters.append(rand_letter)
 
-        for i in range(int2):
+        for _ in range(int2):
             right_letter = random.choice(letter_list)
             while right_letter in rand_letters:
                 right_letter = random.choice(letter_list)
